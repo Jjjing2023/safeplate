@@ -1,0 +1,6 @@
+# Build output
+target/
+
+# Secrets (defense in depth; the real key lives in ~/.safeplate.env)
+.env
+*.env
