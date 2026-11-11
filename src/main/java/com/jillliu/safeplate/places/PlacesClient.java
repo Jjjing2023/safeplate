@@ -30,7 +30,8 @@ public class PlacesClient {
                 .uri(URI.create("https://places.googleapis.com/v1/places:searchText"))
                 .header("Content-Type", "application/json")
                 .header("X-Goog-Api-Key", apiKey)
-                .header("X-Goog-FieldMask", "places.id,places.displayName,places.formattedAddress,places.rating")
+                .header("X-Goog-FieldMask",
+                        "places.id,places.displayName,places.formattedAddress,places.rating,places.location,places.priceLevel,places.types,places.userRatingCount,places.websiteUri,places.googleMapsUri")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 

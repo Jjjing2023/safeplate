@@ -1,8 +1,11 @@
 package com.jillliu.safeplate;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.jillliu.safeplate.places.PlacesClient;
+import com.jillliu.safeplate.places.PlacesJsonParser;
+import com.jillliu.safeplate.places.Restaurant;
 
 /**
  * Hello world!
@@ -10,6 +13,11 @@ import com.jillliu.safeplate.places.PlacesClient;
 public class App {
     public static void main(String[] args) throws IOException, InterruptedException {
         PlacesClient client = new PlacesClient(System.getenv("PLACES_API_KEY"));
-        System.out.println(client.searchText("Thai food near Union Square, New York"));
+        PlacesJsonParser parser = new PlacesJsonParser();
+        List<Restaurant> restaurants = parser.parse(client.searchText("Thai food near Union Square, New York"));
+        for (Restaurant r : restaurants) {
+            System.out.println(r);
+        }
+        System.out.println("Total: " + restaurants.size());
     }
 }
