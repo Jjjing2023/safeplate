@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,11 +36,30 @@ public class PlacesClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
             throw new IllegalStateException(
                     "Places searchText failed: HTTP " + response.statusCode() + " " + response.body());
+        }
+        return response.body();
+    }
+
+    public String getDetails(String placeId) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://places.googleapis.com/v1/places/" + placeId))
+                .header("Content-Type", "application/json")
+                .header("X-Goog-Api-Key", apiKey)
+                .header("X-Goog-FieldMask",
+                        "id,displayName,formattedAddress,rating,location,priceLevel,types,userRatingCount,websiteUri,googleMapsUri,reviews")
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new IllegalStateException(
+                    "Places getDetails failed: HTTP " + response.statusCode() + " " + response.body());
         }
         return response.body();
     }

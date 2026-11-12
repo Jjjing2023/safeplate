@@ -14,7 +14,7 @@ public class PlacesJsonParser {
         this.objectMapper = new ObjectMapper();
     }
 
-    public List<Restaurant> parse(String json) throws JsonProcessingException {
+    public List<Restaurant> parseRestaurants(String json) throws JsonProcessingException {
         JsonNode root = objectMapper.readTree(json);
         List<Restaurant> restaurants = new ArrayList<>();
         for (JsonNode place : root.path("places")) {
@@ -49,6 +49,25 @@ public class PlacesJsonParser {
             restaurants.add(restaurant);
         }
         return restaurants;
+    }
+
+    public List<Review> parseReviews(String json) throws JsonProcessingException {
+        JsonNode root = objectMapper.readTree(json);
+        List<Review> reviews = new ArrayList<>();
+        for (JsonNode node : root.path("reviews")) {
+            String text = textOrNull(node.path("text").path("text"));
+            Integer rating = intOrNull(node.path("rating"));
+            String publishTime = textOrNull(node.path("publishTime"));
+            String sourceUri = textOrNull(node.path("googleMapsUri"));
+
+            Review review = new Review(
+                    text,
+                    rating,
+                    publishTime,
+                    sourceUri);
+            reviews.add(review);
+        }
+        return reviews;
     }
 
     public static Double doubleOrNull(JsonNode node) {
