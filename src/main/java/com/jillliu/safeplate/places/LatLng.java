@@ -4,10 +4,10 @@ public record LatLng(double lat, double lng) {
     private static final double EARTH_RADIUS_METERS = 6_371_000;
 
     public LatLng {
-        if (lat < -90 || lat > 90) {
+        if (!(lat >= -90 && lat <= 90)) {
             throw new IllegalArgumentException("Invalid latitude range: " + lat);
         }
-        if (lng < -180 || lng > 180) {
+        if (!(lng >= -180 && lng <= 180)) {
             throw new IllegalArgumentException("Invalid longitude range: " + lng);
         }
     }

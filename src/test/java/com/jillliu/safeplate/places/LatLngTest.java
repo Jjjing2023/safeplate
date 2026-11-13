@@ -46,4 +46,14 @@ public class LatLngTest {
         assertThrows(IllegalArgumentException.class, () -> new LatLng(91, 0));
     }
 
+    @Test
+    void rejectsNaNLatitude() {
+        assertThrows(IllegalArgumentException.class, () -> new LatLng(Double.NaN, 0));
+    }
+
+    @Test
+    void rejectsNaNLongitude() {
+        assertThrows(IllegalArgumentException.class, () -> new LatLng(0, Double.NaN));
+    }
+
 }
