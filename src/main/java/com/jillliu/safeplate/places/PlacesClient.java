@@ -9,6 +9,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class PlacesClient {
     private final HttpClient httpClient;
@@ -24,8 +25,18 @@ public class PlacesClient {
         this.objectMapper = new ObjectMapper();
     }
 
-    public String searchText(String query) throws IOException, InterruptedException {
-        String body = objectMapper.writeValueAsString(Map.of("textQuery", query));
+    public String searchText(String query, LatLng center, double radius) throws IOException, InterruptedException {
+        ObjectNode root = objectMapper.createObjectNode();
+        root.put("textQuery", query);
+
+        ObjectNode locationNode = root.putObject("locationBias");
+        ObjectNode circleNode = locationNode.putObject("circle");
+        ObjectNode centernNode = circleNode.putObject("center");
+        centernNode.put("latitude", center.lat());
+        centernNode.put("longitude", center.lng());
+        circleNode.put("radius", radius);
+
+        String body = objectMapper.writeValueAsString(root);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://places.googleapis.com/v1/places:searchText"))
