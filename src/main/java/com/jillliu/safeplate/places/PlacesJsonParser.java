@@ -70,6 +70,7 @@ public class PlacesJsonParser {
         return reviews;
     }
 
+    // Returns null for a missing/null node (instead of asDouble()'s default 0.0).
     public static Double doubleOrNull(JsonNode node) {
         if (node.isMissingNode() || node.isNull()) {
             return null;

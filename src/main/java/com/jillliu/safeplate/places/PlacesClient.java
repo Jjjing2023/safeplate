@@ -6,7 +6,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -31,9 +30,9 @@ public class PlacesClient {
 
         ObjectNode locationNode = root.putObject("locationBias");
         ObjectNode circleNode = locationNode.putObject("circle");
-        ObjectNode centernNode = circleNode.putObject("center");
-        centernNode.put("latitude", center.lat());
-        centernNode.put("longitude", center.lng());
+        ObjectNode centerNode = circleNode.putObject("center");
+        centerNode.put("latitude", center.lat());
+        centerNode.put("longitude", center.lng());
         circleNode.put("radius", radius);
 
         String body = objectMapper.writeValueAsString(root);
