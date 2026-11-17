@@ -1,0 +1,4 @@
+{"id":"s1","source":"SYNTHETIC","restaurant":"Sample Thai","text":"The server checked every sauce with the chef and made my curry gluten free.","expected":"POSITIVE","tags":[],"note":""}
+{"id":"s2","source":"SYNTHETIC","restaurant":"Sample Bistro","text":"No substitutions or modifications, please.","expected":"NEGATIVE","tags":[],"note":""}
+{"id":"s3","source":"SYNTHETIC","restaurant":"Sample Grill","text":"Please inform your server of any food allergies before ordering.","expected":"BOILERPLATE","tags":[],"note":""}
+{"id":"s4","source":"SYNTHETIC","restaurant":"Sample Cafe","text":"Great coffee and the patio is lovely in the afternoon.","expected":"IRRELEVANT","tags":["weak","hard"],"note":"sample note for parser tests"}
