@@ -15,9 +15,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class OllamaClient {
-    private static final String MODEL_NAME = "qwen3:8b";
     private static final String API_ENDPOINT = "http://localhost:11434/api/chat";
-    private static final String CLASSIFY_SYSTEM_RULE = """
+    private final String systemPrompt;
+    private final ClassifyConfig config;
+
+    private static final String CLASSIFY_SYSTEM_RULE_V1 = """
                 You classify ONE piece of restaurant evidence about dietary accommodation \
                 (gluten-free, dairy-free). Answer in JSON.
                 category:
@@ -29,14 +31,82 @@ public class OllamaClient {
                 reason = one short sentence.
             """;
 
+    private static final String CLASSIFY_SYSTEM_RULE_V2 = """
+            You classify ONE piece of restaurant evidence (a customer review or text from the \
+            restaurant's website) about how the restaurant handles dietary restrictions and food allergies. \
+            Any restriction or allergy counts, not only gluten-free or dairy-free. \
+            Read the WHOLE text before deciding. Answer in JSON.
+
+            category:
+            POSITIVE = the restaurant accommodated, or states it is willing to accommodate, a dietary \
+            restriction or allergy. For example: staff checked ingredients or changed a dish; a diner told \
+            the staff about an allergy and had a good meal; a diner with celiac disease or an allergy ate \
+            without problems; the menu marks gluten-free or dairy-free items; the restaurant offers an \
+            allergen menu or accommodates on request or with advance notice. A cross-contamination \
+            disclaimer does not cancel a POSITIVE.
+            NEGATIVE = the restaurant refused or says it cannot accommodate (no substitutions, an ingredient \
+            cannot be removed, dishes are very difficult to modify), staff were dismissive, or a diner \
+            reported a reaction or got sick. A reported reaction is NEGATIVE even if the restaurant also \
+            tried to accommodate.
+            BOILERPLATE = generic text that neither offers nor refuses anything: asking guests to mention \
+            allergies, saying no item can be guaranteed allergen-free or that not every request can be met, \
+            cross-contamination warnings, and food-safety warnings about raw or undercooked food.
+            IRRELEVANT = nothing about the restaurant handling a restriction. Vegan or vegetarian options \
+            alone are IRRELEVANT, because vegan does not mean gluten-free or dairy-free. A reviewer's own \
+            food preferences are IRRELEVANT.
+
+            quote = copy the exact words from the evidence that support the category, or empty string for IRRELEVANT.
+            reason = one short sentence.
+            """;
+    private static final String CLASSIFY_SYSTEM_RULE_V3 = """
+            You classify ONE piece of restaurant evidence (a customer review or text from the \
+            restaurant's website) about dietary restrictions and food allergies at the restaurant. \
+            Any restriction or allergy counts, not only gluten-free or dairy-free. \
+            Read the WHOLE text before deciding. Answer in JSON.
+
+            category:
+            POSITIVE = the restaurant accommodated, or states it is willing to accommodate, a dietary \
+            restriction or allergy, or the evidence says the restaurant has gluten-free or dairy-free \
+            options or dishes. For example: staff checked ingredients or changed a dish; a diner told \
+            the staff about an allergy and had a good meal; a diner with celiac disease or an allergy ate \
+            without problems; a review mentions gluten-free dishes; the menu marks gluten-free or \
+            dairy-free items; the restaurant offers an allergen menu or accommodates on request or with \
+            advance notice. A cross-contamination disclaimer does not cancel a POSITIVE.
+            NEGATIVE = the restaurant refused or says it cannot accommodate (no substitutions, dishes \
+            are very difficult to modify), staff were dismissive, or a diner reported a reaction or got \
+            sick. A reported reaction is NEGATIVE even if the restaurant also tried to accommodate.
+            BOILERPLATE = generic text that neither offers nor refuses anything: asking guests to mention \
+            allergies, saying no item can be guaranteed allergen-free, that some ingredients cannot be \
+            completely removed, or that not every request can be met, cross-contamination warnings, and \
+            food-safety warnings about raw or undercooked food.
+            IRRELEVANT = nothing about dietary restrictions or allergies at the restaurant. Vegan or \
+            vegetarian options alone are IRRELEVANT, because vegan does not mean gluten-free or \
+            dairy-free. A reviewer's own food preferences are IRRELEVANT.
+
+            quote = copy the exact words from the evidence that support the category, without shortening \
+            them or using "...", or empty string for IRRELEVANT.
+            reason = one short sentence.
+            """;
+
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final OllamaJsonParser parser;
 
-    public OllamaClient() {
+    public OllamaClient(ClassifyConfig config) {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
         this.parser = new OllamaJsonParser();
+        this.config = config;
+        this.systemPrompt = promptFor(config.promptVersion());
+    }
+
+    public static String promptFor(String version) {
+        return switch (version) {
+            case "v1" -> CLASSIFY_SYSTEM_RULE_V1;
+            case "v2" -> CLASSIFY_SYSTEM_RULE_V2;
+            case "v3" -> CLASSIFY_SYSTEM_RULE_V3;
+            default -> throw new IllegalArgumentException("Unknown prompt version: " + version);
+        };
     }
 
     private String send(ObjectNode requestRoot) throws IOException, InterruptedException {
@@ -63,7 +133,7 @@ public class OllamaClient {
 
     public String chat(String userMessage) throws IOException, InterruptedException {
         ObjectNode root = objectMapper.createObjectNode();
-        root.put("model", MODEL_NAME);
+        root.put("model", config.model());
         ArrayNode messages = root.putArray("messages");
         ObjectNode message = messages.addObject();
         message.put("role", "user");
@@ -77,7 +147,7 @@ public class OllamaClient {
 
     public EvidenceClassification classify(String evidence) throws IOException, InterruptedException {
         ObjectNode root = objectMapper.createObjectNode();
-        root.put("model", MODEL_NAME);
+        root.put("model", config.model());
         root.put("stream", false);
         root.put("think", false);
         ObjectNode optionNode = root.putObject("options");
@@ -85,7 +155,7 @@ public class OllamaClient {
         ArrayNode messages = root.putArray("messages");
         ObjectNode systemNode = messages.addObject();
         systemNode.put("role", "system");
-        systemNode.put("content", CLASSIFY_SYSTEM_RULE);
+        systemNode.put("content", systemPrompt);
         ObjectNode userNode = messages.addObject();
         userNode.put("role", "user");
         userNode.put("content", "Evidence: " + evidence);

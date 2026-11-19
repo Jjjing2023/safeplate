@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.jillliu.safeplate.llm.ClassifyConfig;
 import com.jillliu.safeplate.llm.EvidenceCategory;
 import com.jillliu.safeplate.llm.EvidenceClassification;
 
@@ -32,7 +33,7 @@ public class EvalReportTest {
         EvalResult r4 = new EvalResult(item4, c4, 200, null);
 
         List<EvalResult> results = List.of(r1, r2, r3, r4);
-        EvalConfig evalConfig = new EvalConfig("model", "v1", true, 0.0);
+        ClassifyConfig evalConfig = new ClassifyConfig("model", "v1", true, 0.0);
 
         EvalReport report = EvalReport.from(evalConfig, results);
         assertEquals(1, report.errorCount());

@@ -52,6 +52,7 @@ The real labeled data is kept outside this repo. All examples below are made up.
    "They left out the peanuts for my son." / "Very accommodating of our allergies."
 10. "Cannot guarantee" is a disclaimer, not a refusal → BOILERPLATE.
     "We cannot guarantee any dish is free of gluten or nuts."
+    "Gluten, dairy and soy cannot be completely removed from our dishes."
 11. "Unable to accommodate" GF or DF → NEGATIVE.
     "We are unable to accommodate gluten-free requests."
 12. "Very difficult to modify our dishes" → NEGATIVE.

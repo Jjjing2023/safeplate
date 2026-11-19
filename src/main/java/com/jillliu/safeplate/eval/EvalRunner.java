@@ -10,8 +10,8 @@ import com.jillliu.safeplate.llm.OllamaClient;
 public class EvalRunner {
     private final OllamaClient ollamaClient;
 
-    public EvalRunner() {
-        this.ollamaClient = new OllamaClient();
+    public EvalRunner(OllamaClient ollamaClient) {
+        this.ollamaClient = ollamaClient;
     }
 
     public List<EvalResult> run(List<EvalItem> items) throws InterruptedException {

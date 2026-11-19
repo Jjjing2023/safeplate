@@ -1,6 +1,6 @@
-package com.jillliu.safeplate.eval;
+package com.jillliu.safeplate.llm;
 
-public record EvalConfig(
+public record ClassifyConfig(
         String model,
         String promptVersion,
         boolean think,

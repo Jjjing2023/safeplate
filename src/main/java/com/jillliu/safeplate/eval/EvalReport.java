@@ -3,10 +3,12 @@ package com.jillliu.safeplate.eval;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jillliu.safeplate.llm.ClassifyConfig;
 import com.jillliu.safeplate.llm.EvidenceCategory;
+import com.jillliu.safeplate.llm.EvidenceClassification;
 
 public record EvalReport(
-        EvalConfig config,
+        ClassifyConfig config,
         int total,
         int correctCount,
         int[][] confusion,
@@ -16,7 +18,9 @@ public record EvalReport(
         List<EvalResult> wrongResults,
         List<EvalResult> errorResults) {
 
-    public static EvalReport from(EvalConfig config, List<EvalResult> results) {
+    private static final int TEXT_PREVIEW_LENGTH = 80;
+
+    public static EvalReport from(ClassifyConfig config, List<EvalResult> results) {
         int categoryCount = EvidenceCategory.values().length;
         int[][] confusion = new int[categoryCount][categoryCount];
 
@@ -73,4 +77,53 @@ public record EvalReport(
     public double accuracy() {
         return answeredCount() == 0 ? 0.0 : (double) correctCount / answeredCount();
     }
+
+    public String format() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Eval report ===\n");
+        sb.append(String.format("model=%s  prompt=%s  think=%b  temperature=%.1f\n\n",
+                config.model(), config.promptVersion(), config.think(), config.temperature()));
+
+        sb.append(String.format("Items: %d   Errors: %d   Answered: %d   Avg latency: %.0f ms\n",
+                total, errorCount, answeredCount(), averageLatencyMillis()));
+        sb.append(String.format("Accuracy: %d/%d = %.1f%%\n", correctCount, answeredCount(), accuracy() * 100));
+        sb.append(String.format("Bad quotes: %d (POSITIVE/NEGATIVE predictions only)\n\n", badQuoteCount));
+
+        EvidenceCategory[] categories = EvidenceCategory.values();
+        sb.append("Confusion (rows = expected, columns = predicted)\n");
+        sb.append(String.format("%-12s", ""));
+        for (EvidenceCategory c : categories) {
+            sb.append(String.format("%13s", c));
+        }
+        sb.append("\n");
+        for (EvidenceCategory expected : categories) {
+            sb.append(String.format("%-12s", expected));
+            for (EvidenceCategory predicted : categories) {
+                sb.append(String.format("%13d", confusion[expected.ordinal()][predicted.ordinal()]));
+            }
+            sb.append("\n");
+        }
+
+        sb.append(String.format("\nWrong items (%d)\n", wrongResults.size()));
+        for (EvalResult r : wrongResults) {
+            EvidenceClassification c = r.classification();
+            sb.append(String.format("%-5s %s -> %s\n", r.item().id(), r.item().expected(), c.category()));
+            sb.append("      text:   ").append(preview(r.item().text())).append("\n");
+            sb.append("      quote:  \"").append(c.quote()).append("\"\n");
+            sb.append("      reason: ").append(c.reason()).append("\n");
+        }
+
+        sb.append(String.format("\nErrors (%d)\n", errorResults.size()));
+        for (EvalResult r : errorResults) {
+            sb.append(String.format("%-5s %s\n", r.item().id(), r.error()));
+        }
+        return sb.toString();
+
+    }
+
+    private static String preview(String text) {
+        return text.length() > TEXT_PREVIEW_LENGTH ? text.substring(0, TEXT_PREVIEW_LENGTH) + "..." : text;
+    }
+
 }
