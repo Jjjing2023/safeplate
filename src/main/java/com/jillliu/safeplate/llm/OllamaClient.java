@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class OllamaClient {
+public class OllamaClient implements EvidenceClassifier {
     private static final String API_ENDPOINT = "http://localhost:11434/api/chat";
     private final String systemPrompt;
     private final ClassifyConfig config;
@@ -145,20 +145,21 @@ public class OllamaClient {
         return this.send(root);
     }
 
-    public EvidenceClassification classify(String evidence) throws IOException, InterruptedException {
+    @Override
+    public EvidenceClassification classify(String text) throws IOException, InterruptedException {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", config.model());
         root.put("stream", false);
-        root.put("think", false);
+        root.put("think", config.think());
         ObjectNode optionNode = root.putObject("options");
-        optionNode.put("temperature", 0);
+        optionNode.put("temperature", config.temperature());
         ArrayNode messages = root.putArray("messages");
         ObjectNode systemNode = messages.addObject();
         systemNode.put("role", "system");
         systemNode.put("content", systemPrompt);
         ObjectNode userNode = messages.addObject();
         userNode.put("role", "user");
-        userNode.put("content", "Evidence: " + evidence);
+        userNode.put("content", "Evidence: " + text);
         ObjectNode format = root.putObject("format");
         format.put("type", "object");
 

@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jillliu.safeplate.llm.EvidenceClassification;
-import com.jillliu.safeplate.llm.OllamaClient;
+import com.jillliu.safeplate.llm.EvidenceClassifier;
 
 public class EvalRunner {
-    private final OllamaClient ollamaClient;
+    private final EvidenceClassifier classifier;
 
-    public EvalRunner(OllamaClient ollamaClient) {
-        this.ollamaClient = ollamaClient;
+    public EvalRunner(EvidenceClassifier classifier) {
+        this.classifier = classifier;
     }
 
     public List<EvalResult> run(List<EvalItem> items) throws InterruptedException {
@@ -19,7 +19,7 @@ public class EvalRunner {
         for (EvalItem item : items) {
             long start = System.currentTimeMillis();
             try {
-                EvidenceClassification c = ollamaClient.classify(item.text());
+                EvidenceClassification c = classifier.classify(item.text());
                 long latency = System.currentTimeMillis() - start;
                 EvalResult result = new EvalResult(item, c, latency, null);
                 results.add(result);
