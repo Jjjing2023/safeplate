@@ -35,7 +35,7 @@ public class EvalReportTest {
         List<EvalResult> results = List.of(r1, r2, r3, r4);
         ClassifyConfig evalConfig = new ClassifyConfig("model", "v1", true, 0.0);
 
-        EvalReport report = EvalReport.from(evalConfig, results);
+        EvalReport report = EvalReport.from(evalConfig, results, "FakeClassifier");
         assertEquals(1, report.errorCount());
         assertEquals(1, report.badQuoteCount());
         assertEquals(2, report.correctCount());

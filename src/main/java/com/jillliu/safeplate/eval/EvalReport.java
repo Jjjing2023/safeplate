@@ -9,6 +9,7 @@ import com.jillliu.safeplate.llm.EvidenceClassification;
 
 public record EvalReport(
         ClassifyConfig config,
+        String classifierName,
         int total,
         int correctCount,
         int[][] confusion,
@@ -20,7 +21,7 @@ public record EvalReport(
 
     private static final int TEXT_PREVIEW_LENGTH = 80;
 
-    public static EvalReport from(ClassifyConfig config, List<EvalResult> results) {
+    public static EvalReport from(ClassifyConfig config, List<EvalResult> results, String classifierName) {
         int categoryCount = EvidenceCategory.values().length;
         int[][] confusion = new int[categoryCount][categoryCount];
 
@@ -61,7 +62,8 @@ public record EvalReport(
             }
         }
 
-        return new EvalReport(config, results.size(), correctCount, confusion, totalLatencyMillis, badQuoteCount,
+        return new EvalReport(config, classifierName, results.size(), correctCount, confusion, totalLatencyMillis,
+                badQuoteCount,
                 errorCount, wrongResults,
                 errorResults);
     }
@@ -82,8 +84,8 @@ public record EvalReport(
 
         StringBuilder sb = new StringBuilder();
         sb.append("=== Eval report ===\n");
-        sb.append(String.format("model=%s  prompt=%s  think=%b  temperature=%.1f\n\n",
-                config.model(), config.promptVersion(), config.think(), config.temperature()));
+        sb.append(String.format("classifier=%s  model=%s  prompt=%s  think=%b  temperature=%.1f\n\n",
+                classifierName, config.model(), config.promptVersion(), config.think(), config.temperature()));
 
         sb.append(String.format("Items: %d   Errors: %d   Answered: %d   Avg latency: %.0f ms\n",
                 total, errorCount, answeredCount(), averageLatencyMillis()));
